@@ -1,5 +1,12 @@
 # Dxeon
 
+## Installation
+
+```
+!git clone https://github.com/braindotai/Dxeon > /dev/null
+!pip install -q -e ./Dxeon/ > /dev/null
+```
+
 ## IO
 
 - A single api for reading images to cv2, pil and torch.
