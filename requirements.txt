@@ -1,0 +1,25 @@
+certifi==2021.5.30
+charset-normalizer==2.0.6
+colorama==0.4.4
+cycler==0.10.0
+-e git+https://github.com/braindotai/Dxeon.git@329df2967a40960c1de23bb6cd82dbd9c584733c#egg=Dxeon
+flatbuffers==2.0
+idna==3.2
+kiwisolver==1.3.2
+matplotlib==3.4.3
+numpy==1.21.2
+onnxruntime==1.9.0
+opencv-python==4.5.3.56
+Pillow==8.3.2
+protobuf==3.18.1
+pydot==1.4.2
+pyparsing==2.4.7
+python-dateutil==2.8.2
+requests==2.26.0
+six==1.16.0
+torchinfo==1.5.3
+torch>=1.9
+torchvision>=0.10
+tqdm==4.62.3
+typing-extensions==3.10.0.2
+urllib3==1.26.7
