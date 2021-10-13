@@ -105,5 +105,7 @@ def get_plt_image(image, bgr2rgb: bool = False, normalize_image: bool = True):
     if isinstance(image, np.ndarray):
         if image.shape[-1] == 1:
             image = image[:, :, 0]
+        elif image.shape[0] == 1:
+            image = image[0]
     
     return image
