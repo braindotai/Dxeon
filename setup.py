@@ -9,6 +9,7 @@ install_requires = [
     'idna >= 3.2',
     'kiwisolver >= 1.3.2',
     'matplotlib >= 3.4.3',
+    'moviepy >= 1.0',
     'numpy >= 1.21.2',
     'onnx >= 1.10.1',
     'onnxruntime >= 1.9.0',
