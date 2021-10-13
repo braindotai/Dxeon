@@ -21,6 +21,7 @@ def image(
     if size:
         plt.figure(figsize = size)
     image = utils.image.get_plt_image(image, bgr2rgb, normalize)
+    cmap = cmap or ('gray' if len(image.shape) == 2 else None)
     plt.imshow(image, cmap = cmap, alpha = alpha)
     plt.axis('off')
     
