@@ -11,7 +11,7 @@ def image(
     image: Union[Image.Image, np.ndarray, torch.Tensor],
     title: str = None,
     size: Tuple[int] = None,
-    bgr2rgb = True,
+    bgr2rgb = False,
     normalize: bool = True,
     save: str = None,
     cmap = None,
