@@ -66,6 +66,18 @@ def resize_cv2(image: Image, size: Union[int, Tuple[int, int], List[int]], inter
         image = cv2.resize(image, tuple(size), interpolation = interpolation_method)
     return image
 
+def bgr2rgb_cv2(image: np.ndarray) -> np.ndarray:
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+def rgb2bgr_cv2(image: np.ndarray) -> np.ndarray:
+    return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+def rgb2gray_cv2(image: np.ndarray) -> np.ndarray:
+    return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
+def bgr2gray_cv2(image: np.ndarray) -> np.ndarray:
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
 def normalize(image: Union[np.ndarray, torch.Tensor]):
     return (image - image.min()) / (image.max() - image.min())
 

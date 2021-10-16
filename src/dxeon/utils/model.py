@@ -21,7 +21,7 @@ def load_model(model: nn.Module, state_dict_path: str, strict: bool = True) -> N
 def save_model(model: nn.Module, state_dict_path: str) -> None:
     torch.save(model.state_dict(), state_dict_path)
 
-@torch.inference_mode()
+@torch.no_grad()
 def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 30, cudnn_benchmark: bool = False) -> None:
     torch.backends.cudnn.benchmark = cudnn_benchmark
 
