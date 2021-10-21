@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 from typing import Union, Tuple, List
 
-def resize_pil(image: Image, size: Union[int, Tuple[int, int], List[int]], interpolation: str) -> Image:
+def resize_pil(image: Image, size: Union[int, Tuple[int, int], List[int]], interpolation: str = 'bicubuc') -> Image:
     assert type(size) in [tuple, int, list], f'\n\n`size` must be an int or tuple of ints, but got "{type(size)}".\n'
 
     if interpolation == 'bicubic':
@@ -39,7 +39,7 @@ def resize_pil(image: Image, size: Union[int, Tuple[int, int], List[int]], inter
 
     return image
 
-def resize_cv2(image: Image, size: Union[int, Tuple[int, int], List[int]], interpolation: str) -> Image:
+def resize_cv2(image: Image, size: Union[int, Tuple[int, int], List[int]], interpolation: str = 'linear') -> Image:
     assert type(size) in [tuple, int, list], f'\n\n`size` must be an int or tuple of ints, but got "{type(size)}".\n'
         
     h, w = image.shape[:2]
@@ -51,7 +51,7 @@ def resize_cv2(image: Image, size: Union[int, Tuple[int, int], List[int]], inter
     elif interpolation == 'area':
         interpolation_method = cv2.INTER_AREA
     else:
-        raise ValueError(f'\n\n`interpolation` must be one of bicubic, linear or area, but got {interpolation}.\n')
+        raise ValueError(f'\n\n`interpolation` must be one of cubic, linear or area, but got {interpolation}.\n')
 
     if isinstance(size, int):
         if w > h:
@@ -78,6 +78,15 @@ def rgb2gray_cv2(image: np.ndarray) -> np.ndarray:
 def bgr2gray_cv2(image: np.ndarray) -> np.ndarray:
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+def hflip_cv2(image: np.ndarray) -> np.ndarray:
+    return cv2.flip(image, 1)
+
+def vflip_cv2(image: np.ndarray) -> np.ndarray:
+    return cv2.flip(image, 0)
+
+def rectangle_cv2(image: np.ndarray, pt1, pt2, color = [255, 0, 0], thickness = 3) -> np.ndarray:
+    return cv2.rectangle(image, pt1, pt2, color, thickness)
+
 def normalize(image: Union[np.ndarray, torch.Tensor]):
     return (image - image.min()) / (image.max() - image.min())
 
@@ -98,7 +107,7 @@ def torch_to_numpy(torch_image: np.ndarray) -> torch.Tensor:
     torch_image = (torch_image - torch_image.min())/(torch_image.max() - torch_image.min())
     
     if len(torch_image.shape) == 3:
-        np_image = torch_image.permute(1, 2, 0).numpy()
+        np_image = torch_image.cpu().permute(1, 2, 0).numpy()
     else:
         np_image = torch_image.numpy()
     
@@ -112,7 +121,7 @@ def get_plt_image(image, bgr2rgb: bool = False, normalize_image: bool = True):
         image = normalize(image)
     
     if isinstance(image, torch.Tensor):
-        image = image.permute(1, 2, 0).numpy() if len(image.shape) == 3 else image.numpy()
+        image = image.cpu().permute(1, 2, 0).numpy() if len(image.shape) == 3 else image.cpu().numpy()
     
     if isinstance(image, np.ndarray):
         if image.shape[-1] == 1:

@@ -3,8 +3,10 @@ from dataclasses import dataclass, InitVar, field
 import numpy as np
 import torch
 from torch import nn
+import torch.nn.utils.prune as torch_prune
 import onnxruntime
 from time import time
+from tqdm.auto import tqdm
 
 def freeze(model: nn.Module) -> None:
     for param in model.parameters():
@@ -21,6 +23,9 @@ def load_model(model: nn.Module, state_dict_path: str, strict: bool = True) -> N
 def save_model(model: nn.Module, state_dict_path: str) -> None:
     torch.save(model.state_dict(), state_dict_path)
 
+def get_device(model: nn.Module):
+    return next(model.parameters()).device
+
 @torch.no_grad()
 def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 30, cudnn_benchmark: bool = False) -> None:
     torch.backends.cudnn.benchmark = cudnn_benchmark
@@ -29,15 +34,17 @@ def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 30
     model(input_batch)
 
     tmps = []
-    for _ in range(runs):
+    loader = tqdm(range(runs), desc = 'Benchmarking Completed', ncols = 200)
+    for _ in loader:
         start = time()
         model(input_batch)
         took = time() - start
+        loader.set_postfix(latest_runtime = f'{took} secs')
         tmps.append(took)
     
     tmps = np.array(tmps)
 
-    print('[=================== Batch Stats ================== ]')
+    print(f'[=================== Batch({input_batch.size(0)} samples) Stats ================== ]')
     print(f'Avg seconds per batch     \t: {tmps.mean():.3f}')
     print(f'Median seconds per batch  \t: {np.median(tmps):.3f}')
     
@@ -52,7 +59,7 @@ def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 30
     print(f'Median Samples per second \t: {(input_batch.size(0) / np.median(tmps)):.3f}')
 
 @dataclass
-class ONNXModel:
+class LoadONNXModel:
     onnx_path: InitVar[str]
     session: onnxruntime.InferenceSession = field(init = False)
 
@@ -82,7 +89,8 @@ class GenerateONNXModel:
 
     def __post_init__(self, nn_model: nn.Module, state_dict_path: str = None) -> None:
         x = torch.ones(*self.input_shape)
-        nn_model.eval()
+        nn_model.eval().cpu()
+        
         if state_dict_path:
             load_model(nn_model, state_dict_path, False)
         torch.onnx.export(
@@ -107,3 +115,5 @@ class GenerateONNXModel:
             None,
             {self.session.get_inputs()[0].name: inputs if isinstance(inputs, np.ndarray) else inputs.numpy()}
         )[0]
+
+# def prune()

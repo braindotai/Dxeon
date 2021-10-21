@@ -5,3 +5,4 @@ from .regularization import  *
 from .truncated_noise import  *
 from .image import  *
 from .model import  *
+from .imagenet import  *
