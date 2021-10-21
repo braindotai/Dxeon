@@ -39,12 +39,12 @@ def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 30
         start = time()
         model(input_batch)
         took = time() - start
-        loader.set_postfix(latest_runtime = f'{took} secs')
+        loader.set_postfix(latest_runtime = f'{took:.3f} secs')
         tmps.append(took)
     
     tmps = np.array(tmps)
 
-    print(f'[=================== Batch({input_batch.size(0)} samples) Stats ================== ]')
+    print(f'\n[============ Batch({input_batch.size(0)} samples) Stats ============]')
     print(f'Avg seconds per batch     \t: {tmps.mean():.3f}')
     print(f'Median seconds per batch  \t: {np.median(tmps):.3f}')
     
