@@ -1,9 +1,7 @@
-# from ..visualize.image import normalize_image
-from torchvision import models
+import os
 from .. import utils
 import torch
 from torch import nn
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
 def compute_integrated_gradients(
@@ -14,33 +12,11 @@ def compute_integrated_gradients(
     class_idx: int = None,
     device: str = 'cuda',
     visualize: bool = True,
+    save_path: os.PathLike = None,
 ) -> torch.Tensor:
     baseline = torch.zeros_like(input_tensor)
 
-    def conv_backward_hook(module, input_grads, output_grads):
-        input_grads = input_grads[0]
-        # max_val = input_grads.max()
-        # print(input_grads.max(), input_grads.min())
-        # input_grads = (input_grads - input_grads.mean())/(input_grads.std())
-        # input_grads = (input_grads - input_grads.min())/(input_grads.max() - input_grads.min()) # 0, 1
-        # print(input_grads.max(), input_grads.min())
-        # input_grads = input_grads * (2.0) - 1.0 # -1, 1
-        # print(input_grads.max(), input_grads.min(), '....')
-        # input_grads = F.relu(input_grads)
-
-        return input_grads,
-    
-    def relu_backward_hook(module, input_grads, output_grads):
-        input_grads = input_grads[0]
-        input_grads = F.relu(input_grads)
-
-        return input_grads,
-
-    for module in model.modules():
-        # if isinstance(module, nn.Conv2d):
-        #     module.register_full_backward_hook(conv_backward_hook)
-        if isinstance(module, nn.ReLU):
-            module.register_backward_hook(relu_backward_hook)
+    model.zero_grad()
 
     interpolated_images = torch.stack(
         [
@@ -57,13 +33,12 @@ def compute_integrated_gradients(
         outputs = model(interpolated_images.to(device))
 
     if has_classes:
-        class_idx = class_idx if class_idx else outputs[-1].argmax(0)
+        class_idx = class_idx if class_idx is not None else outputs[-1].argmax(0)
         integrated_gradients = torch.autograd.grad(outputs.softmax(1)[:, class_idx].sum(), interpolated_images)[0].mean(dim = 0)
     else:
         integrated_gradients = torch.autograd.grad(outputs.sum(), interpolated_images)[0].mean(dim = 0)
 
     integrated_gradients = (integrated_gradients * input_tensor).abs().sum(dim = 0)
-    # integrated_gradients = (integrated_gradients).sum(dim = 0)
 
     if visualize:
         plt.figure(figsize = (7, 7))
@@ -90,6 +65,9 @@ def compute_integrated_gradients(
         plt.title('Integrated Gradients Mapped Inputs')
         plt.axis('off')
 
+        if save_path:
+            plt.savefig(save_path)
+            
         plt.show()
 
     return integrated_gradients.detach()

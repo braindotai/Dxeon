@@ -1,6 +1,6 @@
+import os
 import torch
 from torch import nn
-from copy import deepcopy
 from .. import utils
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,10 +13,11 @@ def compute_grad_cam(
     has_classes: bool = True,
     class_idx: int = None,
     device: str = 'cuda',
-    visualize: bool = True
+    visualize: bool = True,
+    save_path: os.PathLike = None,
 ) -> torch.Tensor:
     
-    model = deepcopy(model)
+    model.zero_grad()
 
     def backward_hook(module, inputs_grad, outputs_grad):
         model._hook_gradients = outputs_grad[0]
@@ -24,8 +25,8 @@ def compute_grad_cam(
     def forward_hook(module, inputs, outputs):
         model._hook_activations = outputs
         
-    getattr(model, layer_name).register_forward_hook(forward_hook)
-    getattr(model, layer_name).register_backward_hook(backward_hook)
+    handle1 = getattr(model, layer_name).register_forward_hook(forward_hook)
+    handle2 = getattr(model, layer_name).register_backward_hook(backward_hook)
 
     if next(model.parameters()).device != device:
         outputs = model.to(device)(input_tensor.unsqueeze(0).to(device))
@@ -33,8 +34,8 @@ def compute_grad_cam(
         outputs = model(input_tensor.unsqueeze(0).to(device))
 
     if has_classes:
-        class_idx = class_idx if class_idx else outputs[0].argmax(0)
-        outputs[:, outputs[0].argmax(0).item()].backward()
+        class_idx = class_idx if class_idx is not None else outputs[0].argmax(0)
+        outputs[:, class_idx].backward()
     else:
         outputs[0].sum().backward()
 
@@ -45,7 +46,7 @@ def compute_grad_cam(
         activations = model._hook_activations.detach()
         activations *= pooled_gradients.unsqueeze(-1).unsqueeze(-1).unsqueeze(0)
         
-        activation_maps = torch.mean(activations, dim = 1).squeeze().cpu()
+        activation_maps = torch.sum(activations, dim = 1).squeeze().cpu()
         activation_maps = np.maximum(activation_maps, 0)
         activation_maps /= torch.max(activation_maps)
 
@@ -57,6 +58,9 @@ def compute_grad_cam(
 
         heatmap = utils.image.resize_cv2(heatmap.permute(1, 2, 0).numpy(), list(input_tensor.shape[1:]), 'cubic')
         activation_maps = utils.image.resize_cv2(activation_maps.numpy(), list(input_tensor.shape[1:]), 'cubic')
+
+    handle1.remove()
+    handle2.remove()
 
     if visualize:
         plt.figure(figsize = (7, 7))
@@ -82,6 +86,9 @@ def compute_grad_cam(
         plt.imshow(utils.image.get_plt_image(heatmap))
         plt.title('GradCAM Mapped Inputs')
         plt.axis('off')
+
+        if save_path:
+            plt.savefig(save_path)
 
         plt.show()
     

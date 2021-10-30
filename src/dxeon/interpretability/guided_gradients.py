@@ -1,9 +1,9 @@
+import os
 from .. import utils
 import torch
 from torch import nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from copy import deepcopy
 
 def compute_guided_gradients(
     model: nn.Module,
@@ -12,16 +12,18 @@ def compute_guided_gradients(
     class_idx: int = None,
     device: str = 'cuda',
     visualize: bool = True,
+    save_path: os.PathLike = None,
 ) -> torch.Tensor:
 
-    model = deepcopy(model)
+    model.zero_grad()
 
     def backward_hook(module, input_grads, output_grads):
         if isinstance(module, nn.ReLU):
             return F.relu(input_grads[0]),
-
+    
+    handels = []
     for module in model.modules():
-        module.register_backward_hook(backward_hook)
+        handels.append(module.register_backward_hook(backward_hook))
 
     input_tensor.requires_grad_()
 
@@ -37,6 +39,11 @@ def compute_guided_gradients(
         guided_gradients = torch.autograd.grad(outputs.sum(), input_tensor)[0]
     
     guided_gradients = (guided_gradients - guided_gradients.min()) / (guided_gradients.max() - guided_gradients.min())
+
+    input_tensor.requires_grad = False
+
+    for handle in handels:
+        handle.remove()
 
     if visualize:
         input_tensor = input_tensor.detach()
@@ -64,6 +71,9 @@ def compute_guided_gradients(
         plt.imshow(utils.image.get_plt_image(maps))
         plt.title('Guided Gradients Mapped inputs')
         plt.axis('off')
+        
+        if save_path:
+            plt.savefig(save_path)
 
         plt.show()
 

@@ -6,3 +6,7 @@ from . import stats
 from . import utils
 from . import viz
 from . import warmups
+import matplotlib.pyplot as plt
+
+# plt.style.use('ggplot')
+plt.style.use('seaborn')

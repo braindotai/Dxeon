@@ -1,3 +1,4 @@
+import os
 from .. import utils
 import torch
 from torch import nn
@@ -10,10 +11,13 @@ def compute_saliency_maps(
     class_idx: int = None,
     device: str = 'cuda',
     visualize: bool = True,
+    save_path: os.PathLike = None,
 ) -> torch.Tensor:
     '''
     https://arxiv.org/pdf/1312.6034.pdf
     '''
+
+    model.zero_grad()
 
     input_tensor.requires_grad_()
 
@@ -23,7 +27,8 @@ def compute_saliency_maps(
         outputs = model(input_tensor.unsqueeze(0).to(device))
 
     if has_classes:
-        class_idx = class_idx if class_idx else outputs[-1].argmax(0)
+        class_idx = class_idx if class_idx is not None else outputs[-1].argmax(0)
+        print(utils.imagenet.get_imagenet_class(class_idx.item()))
         saliency_maps, _ = torch.max(
             torch.autograd.grad(outputs.softmax(1)[:, class_idx].sum(), input_tensor)[0].abs(),
             dim = 0
@@ -35,7 +40,9 @@ def compute_saliency_maps(
         )
     
     saliency_maps = (saliency_maps - saliency_maps.min()) / (saliency_maps.max() - saliency_maps.min())
-
+    
+    input_tensor.requires_grad = False
+    
     if visualize:
         input_tensor = input_tensor.detach()
         
@@ -64,6 +71,9 @@ def compute_saliency_maps(
         plt.axis('off')
 
         plt.savefig('old.jpg')
+
+        if save_path:
+            plt.savefig(save_path)
 
         plt.show()
 

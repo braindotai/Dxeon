@@ -3,7 +3,7 @@ from dataclasses import dataclass, InitVar, field
 import numpy as np
 import torch
 from torch import nn
-import torch.nn.utils.prune as torch_prune
+import torch.nn.utils.prune as prune
 import onnxruntime
 from time import time
 from tqdm.auto import tqdm
@@ -27,7 +27,7 @@ def get_device(model: nn.Module):
     return next(model.parameters()).device
 
 @torch.no_grad()
-def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 30, cudnn_benchmark: bool = False) -> None:
+def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 20, cudnn_benchmark: bool = False) -> None:
     torch.backends.cudnn.benchmark = cudnn_benchmark
 
     model(input_batch)
@@ -67,8 +67,8 @@ class LoadONNXModel:
         options = onnxruntime.SessionOptions()
         options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
         self.session = onnxruntime.InferenceSession(onnx_path, sess_options = options)
-        # self.session.set_providers(['CUDAExecutionProvider'])
 
+        # self.session.set_providers(['CUDAExecutionProvider'])
         # self.session = onnxruntime.InferenceSession(onnx_path)
     
     def __call__(self, inputs: Union[np.ndarray, torch.Tensor]) -> np.ndarray:
@@ -76,7 +76,6 @@ class LoadONNXModel:
             None,
             {self.session.get_inputs()[0].name: inputs if isinstance(inputs, np.ndarray) else inputs.numpy()}
         )[0]
-
 
 @dataclass
 class GenerateONNXModel:
@@ -116,4 +115,63 @@ class GenerateONNXModel:
             {self.session.get_inputs()[0].name: inputs if isinstance(inputs, np.ndarray) else inputs.numpy()}
         )[0]
 
-# def prune()
+
+def prune_l1_unstructured(model, layer_types, param_types, proportion):
+    for module in model.modules():
+        if any([isinstance(module, layer_type) for layer_type in layer_types]):
+            for param_type in param_types:
+                if getattr(module, param_type) is not None:
+                    prune.l1_unstructured(module, param_type, proportion)
+                    prune.remove(module, param_type)
+
+    return model
+
+def prune_l1_structured(model, layer_types, param_types, proportion):
+    for module in model.modules():
+        if any([isinstance(module, layer_type) for layer_type in layer_types]):
+            for param_type in param_types:
+                if getattr(module, param_type) is not None:
+                    prune.ln_structured(module, param_type, proportion, n = 1, dim = 1)
+                    prune.remove(module, param_type)
+
+    return model
+
+def prune_global_unstructured(model, layer_types, param_types, proportion):
+    module_tups = []
+    for module in model.modules():
+        if any([isinstance(module, layer_type) for layer_type in layer_types]):
+            for param_type in param_types:
+                if getattr(module, param_type) is not None:
+                    # print(module, param_type)
+                    module_tups.append((module, param_type))
+    
+    prune.global_unstructured(
+        parameters = module_tups,
+        pruning_method = prune.L1Unstructured,
+        amount = proportion
+    )
+
+    for module, param_type in module_tups:
+        prune.remove(module, param_type)
+
+    return model
+
+def compute_sparsity(model: nn.Module, layer_types, param_types):
+    total_params_sum = 0
+    total_params_count = 0
+    
+    for module in model.modules():
+        if any([isinstance(module, layer_type) for layer_type in layer_types]):
+            for param_type in param_types:
+                if getattr(module, param_type) is not None:
+                    total_params_sum += torch.sum(module.weight == 0)
+                    total_params_count += module.weight.nelement()
+    
+    return 100.0 * float(total_params_sum / float(total_params_count))
+
+    '''
+    layers_to_prune = [nn.Conv2d]
+    params_to_prune = ['weight', 'bias']
+
+    print(f'Model sparsity before pruning\t: {compute_sparsity(model, layers_to_prune, params_to_prune):.3}%')
+    '''
