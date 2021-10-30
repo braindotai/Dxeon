@@ -6,3 +6,4 @@ from .truncated_noise import  *
 from .image import  *
 from .model import  *
 from .imagenet import  *
+from .bounding_box import draw_bounding_box

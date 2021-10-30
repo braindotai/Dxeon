@@ -41,7 +41,7 @@ def resize_pil(image: Image, size: Union[int, Tuple[int, int], List[int]], inter
 
 def resize_cv2(image: Image, size: Union[int, Tuple[int, int], List[int]], interpolation: str = 'linear') -> Image:
     assert type(size) in [tuple, int, list], f'\n\n`size` must be an int or tuple of ints, but got "{type(size)}".\n'
-        
+
     h, w = image.shape[:2]
 
     if interpolation == 'cubic':
@@ -66,6 +66,12 @@ def resize_cv2(image: Image, size: Union[int, Tuple[int, int], List[int]], inter
         image = cv2.resize(image, tuple(size), interpolation = interpolation_method)
     return image
 
+def get_aspect_ratio_dims(image, max_dim: int):
+    if image.shape[1] >= image.shape[0]:
+        return max_dim, int(max_dim * (image.shape[0] / image.shape[1]))
+    
+    return int(max_dim * (image.shape[1] / image.shape[0])), max_dim 
+
 def bgr2rgb_cv2(image: np.ndarray) -> np.ndarray:
     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -88,6 +94,11 @@ def rectangle_cv2(image: np.ndarray, pt1, pt2, color = [255, 0, 0], thickness = 
     return cv2.rectangle(image, pt1, pt2, color, thickness)
 
 def normalize(image: Union[np.ndarray, torch.Tensor]):
+    if isinstance(image, np.ndarray):
+        image = image.astype('float32')
+    elif isinstance(image, torch.Tensor):
+        image = image.float()
+
     return (image - image.min()) / (image.max() - image.min())
 
 def pil_to_numpy(pil_image: Image) -> torch.Tensor:
@@ -130,3 +141,6 @@ def get_plt_image(image, bgr2rgb: bool = False, normalize_image: bool = True):
             image = image[0]
     
     return image
+
+def add_weighted_image(image1, image2, alpha = 0.8):
+    image1[:] = (alpha * image1[:]) + ((1.0 - alpha) * image2[:])
