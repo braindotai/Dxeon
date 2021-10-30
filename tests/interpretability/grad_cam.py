@@ -2,7 +2,7 @@ from torchvision import transforms
 import dxeon as dx
 from torchvision.models import resnet18, mnasnet1_0
 
-image = dx.io.image.read_pil('dxeon/housefinch.jpg')
+image = dx.io.image.read_pil('tests/assets/lion.jpg')
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
