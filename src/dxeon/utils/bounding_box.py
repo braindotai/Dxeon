@@ -102,9 +102,9 @@ def draw_bounding_box(image, top_left, bottom_right = None, width_height = None,
 
     _cv2.rectangle(image, (left, top), (right, bottom), color, 2)
 
-    border_width = int(max(right - left, bottom - top) ** 0.34)
+    border_width = max(2, int(max(right - left, bottom - top) ** 0.34))
     border_length = int(max(right - left, bottom - top) * 0.1)
-
+    
     _cv2.line(image, (right - border_length, top), (right, top), color, border_width)
     _cv2.line(image, (right, top), (right, top + border_length), color, border_width)
 
@@ -146,3 +146,6 @@ def draw_bounding_box(image, top_left, bottom_right = None, width_height = None,
         _cv2.rectangle(image, rec_left_top, rec_right_bottom, color, -1)
 
         image[label_top:label_bottom, label_left:label_right, :] = label_image
+    else:
+        _cv2.line(image, (left, top), (left + border_length, top), color, border_width)
+        _cv2.line(image, (left, top), (left, top + border_length), color, border_width)

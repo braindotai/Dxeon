@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 from typing import Union, Tuple, List
 
-def resize_pil(image: Image, size: Union[int, Tuple[int, int], List[int]], interpolation: str = 'bicubuc') -> Image:
+def resize_pil(image: Image, size: Union[int, Tuple[int, int], List[int]], interpolation: str = 'bicubic') -> Image:
     assert type(size) in [tuple, int, list], f'\n\n`size` must be an int or tuple of ints, but got "{type(size)}".\n'
 
     if interpolation == 'bicubic':
