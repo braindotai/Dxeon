@@ -8,3 +8,4 @@ from .residual_block import ResidualBlock2d
 from .resnext_block import ResNextBlock2d
 from .squeeze_and_excitation_block import SpatialSqueezeAndExcitationBlock2d, ChannelSqueezeAndExcitationBlock2d
 from .weight_standardization_block import WeightStandardisationConv2d
+from .invertible_residual_block import InvertedResidual2d

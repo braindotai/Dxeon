@@ -104,6 +104,8 @@ class InceptionBlockC(nn.Module):
             _get_basic_block(in_channels, in_channels // 6, kernel_size = 1, stride = 1)
         )
 
+        self.register_buffer('out_channels', torch.tensor((in_channels // 2) + (in_channels // 3) + (in_channels // 2)))
+
     def forward(self, x):
         x0 = self.branch0(x)
 
@@ -180,15 +182,15 @@ class InceptionReductionBlockB(nn.Module):
 
 
 if __name__ == '__main__':
-    block1 = InceptionBlockA(32)
-    block2 = InceptionBlockB(32)
-    block3 = InceptionBlockC(32)
+    block1 = InceptionBlockA(64)
+    block2 = InceptionBlockB(64)
+    block3 = InceptionBlockC(64)
     
-    block4 = InceptionReductionBlockA(32)
-    block5 = InceptionReductionBlockB(32)
+    block4 = InceptionReductionBlockA(64)
+    block5 = InceptionReductionBlockB(64)
 
-    print('InceptionBlockA:', block1(torch.ones(8, 32, 16, 16)).shape)
-    print('InceptionBlockB:', block2(torch.ones(8, 32, 16, 16)).shape)
-    print('InceptionBlockC:', block3(torch.ones(8, 32, 16, 16)).shape)
-    print('InceptionReductionBlockA:', block4(torch.ones(8, 32, 16, 16)).shape)
-    print('InceptionReductionBlockB:', block5(torch.ones(8, 32, 16, 16)).shape)
+    print('InceptionBlockA:', block1(torch.ones(8, 64, 16, 16)).shape)
+    print('InceptionBlockB:', block2(torch.ones(8, 64, 16, 16)).shape)
+    print('InceptionBlockC:', block3(torch.ones(8, 64, 16, 16)).shape)
+    print('InceptionReductionBlockA:', block4(torch.ones(8, 64, 16, 16)).shape)
+    print('InceptionReductionBlockB:', block5(torch.ones(8, 64, 16, 16)).shape)

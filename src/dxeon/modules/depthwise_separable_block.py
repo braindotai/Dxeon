@@ -36,21 +36,33 @@ class DepthwiseSeperableConv2d(nn.Module):
         self.pre_act_normalize = pre_act_normalize
         
         if normalization:
-            self.normalization = deepcopy(normalization)
+            self.dw_normalization = deepcopy(normalization)
         else:
-            self.normalization = nn.BatchNorm2d(out_channels)
+            self.dw_normalization = nn.BatchNorm2d(in_channels)
+        
+        if normalization:
+            self.pw_normalization = deepcopy(normalization)
+        else:
+            self.pw_normalization = nn.BatchNorm2d(out_channels)
+            
         self.relu = nn.ReLU(inplace = True)
 
     def forward(self, x):
         x = self.depthwise(x)
-        x = self.pointwise(x)
-
         if self.pre_act_normalize:
-            x = self.normalization(x)
+            x = self.dw_normalization(x)
             x = self.relu(x)
         else:
             x = self.relu(x)
-            x = self.normalization(x)
+            x = self.dw_normalization(x)
+
+        x = self.pointwise(x)
+        if self.pre_act_normalize:
+            x = self.pw_normalization(x)
+            x = self.relu(x)
+        else:
+            x = self.relu(x)
+            x = self.pw_normalization(x)
 
         return x
 

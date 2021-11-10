@@ -25,7 +25,7 @@ def image(
     plt.imshow(image, cmap = cmap, alpha = alpha)
     plt.axis('off')
     
-    if title:
+    if title is not None:
         plt.title(title)
     
     if save:
@@ -99,7 +99,7 @@ def image_grid(
         )
         ax.axis('off')
 
-    if title:
+    if title is not None:
         print(title)
     if save:
         plt.savefig(save)
@@ -131,9 +131,9 @@ def labeled_images(
             alpha = alpha[idx]
         )
         ax.axis('off')
-        ax.set_title(f'Class: {label}' if label_dict is None else f'{label_dict[label]}')
+        ax.set_title(f'{label}' if label_dict is None else f'{label_dict[label]}')
 
-    if title:
+    if title is not None:
         print(title)
     if save:
         plt.savefig(save)
