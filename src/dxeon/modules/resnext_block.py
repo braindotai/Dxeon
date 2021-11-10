@@ -27,11 +27,9 @@ class ResNextBlock2d(nn.Module):
                 nn.Conv2d(in_channels, in_channels, kernel_size = 1, stride = 2, bias = False),
                 nn.BatchNorm2d(in_channels),
             )
-            self.skip_connection = lambda a, b: torch.cat((a, b), dim = 1)
         else:
             self.downsample = None
-            self.skip_connection = lambda a, b: a + b
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         residual = x
 
@@ -48,8 +46,9 @@ class ResNextBlock2d(nn.Module):
 
         if self.downsample is not None:
             residual = self.downsample(x)
-
-        y = self.skip_connection(y, residual)
+            y = torch.cat((y, residual), dim = 1)
+        else:
+            y = y + residual
         
         out = self.relu(y)
 
