@@ -14,7 +14,7 @@ def read_torch(video_path: os.PathLike):
     video_reader = VideoReader(video_path)
     metadata = video_reader.get_metadata()
 
-    return video_reader, metadata['video']['fps'], metadata['video']['duration']
+    return video_reader, metadata['video']['fps'][0], metadata['video']['duration'][0]
 
 def read_cv2(video_path: os.PathLike):
     clip = cv2.VideoCapture(video_path)
