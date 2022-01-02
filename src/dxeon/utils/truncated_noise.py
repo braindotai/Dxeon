@@ -1,4 +1,4 @@
-def truncated_noise_(tensor, mean=0, std=1):
+def truncated_noise_(tensor, mean = 0, std = 1):
     size = tensor.shape
     tmp = tensor.new_empty(size + (4,)).normal_()
     valid = (tmp < 2) & (tmp > -2)

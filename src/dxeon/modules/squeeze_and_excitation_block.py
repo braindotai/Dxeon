@@ -9,8 +9,8 @@ class ChannelSqueezeAndExcitationBlock2d(nn.Module):
     ):
         super().__init__()
 
-        self.fc1 = nn.Linear(in_channels, in_channels // reduction_ratio, bias=True)
-        self.fc2 = nn.Linear(in_channels // reduction_ratio, in_channels, bias=True)
+        self.fc1 = nn.Linear(in_channels, int(in_channels // reduction_ratio), bias=True)
+        self.fc2 = nn.Linear(int(in_channels // reduction_ratio), in_channels, bias=True)
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
 
@@ -26,22 +26,20 @@ class ChannelSqueezeAndExcitationBlock2d(nn.Module):
         return out
 
 class SpatialSqueezeAndExcitationBlock2d(nn.Module):
-    def __init__(
-        self,
-        in_channels: int,
-        reduction_ratio: float = 2.0,
-    ):
+    def __init__(self, reduction_channels: int = 32):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(in_channels, in_channels // reduction_ratio, 1)
-        self.conv2 = nn.Conv2d(in_channels // reduction_ratio, in_channels, 1)
+        self.conv1 = nn.Conv2d(1, reduction_channels, 3, 2, 1)
+        self.conv2 = nn.ConvTranspose2d(reduction_channels, 1, 4, 2, 1)
         self.relu = nn.ReLU(True)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        squeeze_tensor = self.sigmoid(self.conv2(self.relu(self.conv1(x))))
+        squeeze_tensor = x.sum(dim = 1) / x.size(1)
+        conv_out1 = self.relu(self.conv1(squeeze_tensor.unsqueeze(1)))
+        conv_out2 = self.sigmoid(self.conv2(conv_out1))
 
-        out = x * squeeze_tensor
+        out = x * conv_out2
 
         return out
 
@@ -50,5 +48,5 @@ if __name__ == '__main__':
     from torchinfo import summary
     block = ChannelSqueezeAndExcitationBlock2d(256, 4)
     summary(block, (8, 256, 64, 64))
-    block = SpatialSqueezeAndExcitationBlock2d(256, 4)
+    block = SpatialSqueezeAndExcitationBlock2d()
     summary(block, (8, 256, 64, 64))

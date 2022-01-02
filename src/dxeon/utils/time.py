@@ -17,6 +17,7 @@ def time_profile(action = 'start', accumulate = False):
 
     elif action == 'end':
         took = time() - START_
+        START_ = time()
         print(f'Run completed in {took:.5f} secs!')
         if ACC_ is not None:
             ACC_.append(took)

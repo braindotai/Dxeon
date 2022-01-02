@@ -53,7 +53,7 @@ def _get_label_image(text, font_color_tuple_bgr, background_color_tuple_bgr, fon
 
     return np.concatenate(image).transpose(1, 2, 0)
 
-def draw_bounding_box(image, top_left, bottom_right = None, width_height = None, label = None, color = None):
+def draw_bounding_box(image, top_left, bottom_right = None, width_height = None, label = None, color = None, color_rgb2bgr = True):
     '''
     https://github.com/nalepae/bounding-box + few changes
     '''
@@ -69,7 +69,7 @@ def draw_bounding_box(image, top_left, bottom_right = None, width_height = None,
         right = int(left + width_height[0])
         bottom = int(top + width_height[1])
 
-    _FONT_HEIGHT = int(max(image.shape[0], image.shape[1]) ** 0.44)
+    _FONT_HEIGHT = int(max(image.shape[0], image.shape[1]) ** 0.42)
     _FONT = ImageFont.truetype(_FONT_PATH, _FONT_HEIGHT)
 
     if type(image) is not _np.ndarray:
@@ -92,12 +92,12 @@ def draw_bounding_box(image, top_left, bottom_right = None, width_height = None,
 
     if type(color) is not str:
         raise TypeError("'color' must be a str")
-
+    
     if color not in _COLOR_NAME_TO_RGB:
         msg = "'color' must be one of " + ", ".join(_COLOR_NAME_TO_RGB)
         raise ValueError(msg)
 
-    colors = [_rgb_to_bgr(item) for item in _COLOR_NAME_TO_RGB[color]]
+    colors = [_rgb_to_bgr(item) if color_rgb2bgr else item for item in _COLOR_NAME_TO_RGB[color]]
     color, color_text = colors
 
     _cv2.rectangle(image, (left, top), (right, bottom), color, 2)
@@ -120,7 +120,7 @@ def draw_bounding_box(image, top_left, bottom_right = None, width_height = None,
         label_image =  _get_label_image(label, color_text, color, _FONT)
         label_height, label_width, _ = label_image.shape
 
-        rectangle_height, rectangle_width = int(1.26 * label_height), int(1.05 * label_width)
+        rectangle_height, rectangle_width = int(1.2 * label_height), int(1.05 * label_width)
 
         rectangle_bottom = top
         rectangle_left = max(0, min(left - 1, image_width - rectangle_width))
@@ -140,7 +140,7 @@ def draw_bounding_box(image, top_left, bottom_right = None, width_height = None,
         label_bottom = label_top + label_height
         label_right = label_left + label_width
 
-        rec_left_top = (rectangle_left, int(rectangle_top * 0.98))
+        rec_left_top = (rectangle_left, int(rectangle_top * 0.99))
         rec_right_bottom = (rectangle_right, rectangle_bottom)
 
         _cv2.rectangle(image, rec_left_top, rec_right_bottom, color, -1)

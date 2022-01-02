@@ -27,7 +27,7 @@ def get_device(model: nn.Module):
     return next(model.parameters()).device
 
 @torch.no_grad()
-def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 20, cudnn_benchmark: bool = False) -> None:
+def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 20, cudnn_benchmark: bool = False, cuda_synchronize: bool = False) -> None:
     torch.backends.cudnn.benchmark = cudnn_benchmark
 
     model(input_batch)
@@ -36,8 +36,12 @@ def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 20
     tmps = []
     loader = tqdm(range(runs), desc = 'Benchmarking Completed', ncols = 200)
     for _ in loader:
+        if cuda_synchronize:
+            torch.cuda.synchronize()
         start = time()
         model(input_batch)
+        if cuda_synchronize:
+            torch.cuda.synchronize()
         took = time() - start
         loader.set_postfix(latest_runtime = f'{took:.3f} secs')
         tmps.append(took)
@@ -66,7 +70,7 @@ class LoadONNXModel:
     def __post_init__(self, onnx_path: str) -> None:
         options = onnxruntime.SessionOptions()
         options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
-        self.session = onnxruntime.InferenceSession(onnx_path, sess_options = options)
+        self.session = onnxruntime.InferenceSession(onnx_path, sess_options = options, providers = ['CUDAExecutionProvider'])
 
         # self.session.set_providers(['CUDAExecutionProvider'])
         # self.session = onnxruntime.InferenceSession(onnx_path)
@@ -80,10 +84,10 @@ class LoadONNXModel:
 @dataclass
 class GenerateONNXModel:
     nn_model: InitVar[nn.Module]
-    state_dict_path: InitVar[str]
     onnx_path: str
     input_shape: tuple
     opset_version: int = 9
+    state_dict_path: InitVar[str] = None
     session: onnxruntime.InferenceSession = field(init = False)
 
     def __post_init__(self, nn_model: nn.Module, state_dict_path: str = None) -> None:
@@ -92,6 +96,7 @@ class GenerateONNXModel:
         
         if state_dict_path:
             load_model(nn_model, state_dict_path, False)
+
         torch.onnx.export(
             nn_model,
             x,
@@ -107,7 +112,7 @@ class GenerateONNXModel:
             },
         )
 
-        self.session = onnxruntime.InferenceSession(self.onnx_path)
+        self.session = onnxruntime.InferenceSession(self.onnx_path, providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'])
     
     def __call__(self, inputs: Union[np.ndarray, torch.Tensor]) -> np.ndarray:
         return self.session.run(

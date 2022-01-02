@@ -17,6 +17,7 @@ OP_STYLE = {
 }
 
 
+@torch.no_grad()
 def model(model: nn.Module, input_size: Union[List[int], Tuple[int]], remove_png = True):
     onnx_path = "temp_model.onnx"
     torch.onnx.export(model, torch.ones(*input_size).to(next(model.parameters()).device), onnx_path)

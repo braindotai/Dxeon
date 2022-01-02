@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-from torch.nn.modules.instancenorm import InstanceNorm1d
 
 def _get_basic_block(in_channels, out_channels, kernel_size, stride = 1, padding = 1):
     return nn.Sequential(

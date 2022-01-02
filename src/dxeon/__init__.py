@@ -14,8 +14,9 @@ import matplotlib.pyplot as plt
 from shutil import rmtree, move, copy
 from torch.utils.data import DataLoader, Dataset, random_split, WeightedRandomSampler
 import torch.nn.functional as F
-from torchvision import models, transforms
+from torchvision import models, transforms as T
 import torchvision.transforms.functional as TF
+from torchvision.datasets import DatasetFolder
 
 # plt.style.use('ggplot')
 plt.style.use('seaborn')
