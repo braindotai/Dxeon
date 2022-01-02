@@ -2,7 +2,7 @@ import os
 import cv2
 import numpy as np
 from moviepy.editor import VideoFileClip
-from torchvision.io import read_video
+from torchvision.io import VideoReader
 from ..utils import bgr2gray_cv2, rgb2bgr_cv2, get_aspect_ratio_dims
 
 def read_moviepy(video_path: os.PathLike):
@@ -11,7 +11,7 @@ def read_moviepy(video_path: os.PathLike):
     return clip, clip.fps, clip.size[0], clip.size[1], clip.duration
 
 def read_torch(video_path: os.PathLike):
-    video_reader = read_video(video_path)
+    video_reader = VideoReader(video_path)
     metadata = video_reader.get_metadata()
 
     return video_reader, metadata['video']['fps'], metadata['video']['duration']
