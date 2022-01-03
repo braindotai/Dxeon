@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Dict, List, Union
 from dataclasses import dataclass, InitVar, field
 import numpy as np
 import torch
@@ -48,29 +48,34 @@ def benchmark_performance(model: nn.Module, input_batch: torch.Tensor, runs = 20
     
     tmps = np.array(tmps)
 
-    print(f'\n[============ Batch({input_batch.size(0)} samples) Stats ============]')
+    print(f'\n[============ Batch({input_batch.shape[0]} samples) Stats ============]')
     print(f'Avg seconds per batch     \t: {tmps.mean():.3f}')
     print(f'Median seconds per batch  \t: {np.median(tmps):.3f}')
     
     print(f'Avg Batches per second    \t: {(1 / tmps.mean()):.3f}')
     print(f'Median Batches per second \t: {(1 / np.median(tmps)):.3f}')
     
-    print('\n[================== Sample Stats ================== ]')
-    print(f'Avg seconds per sample    \t: {(tmps.mean() / input_batch.size(0)):.3f}')
-    print(f'Median seconds per sample \t: {(np.median(tmps) / input_batch.size(0)):.3f}')
+    print('\n[================= Sample Stats =================]')
+    print(f'Avg seconds per sample    \t: {(tmps.mean() / input_batch.shape[0]):.3f}')
+    print(f'Median seconds per sample \t: {(np.median(tmps) / input_batch.shape[0]):.3f}')
     
-    print(f'Avg Samples per second    \t: {(input_batch.size(0) / tmps.mean()):.3f}')
-    print(f'Median Samples per second \t: {(input_batch.size(0) / np.median(tmps)):.3f}')
+    print(f'Avg Samples per second    \t: {(input_batch.shape[0] / tmps.mean()):.3f}')
+    print(f'Median Samples per second \t: {(input_batch.shape[0] / np.median(tmps)):.3f}')
 
 @dataclass
 class LoadONNXModel:
     onnx_path: InitVar[str]
     session: onnxruntime.InferenceSession = field(init = False)
+    providers: InitVar[List[str]] = None
 
-    def __post_init__(self, onnx_path: str) -> None:
+    def __post_init__(self, onnx_path: str, providers = None) -> None:
         options = onnxruntime.SessionOptions()
         options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
-        self.session = onnxruntime.InferenceSession(onnx_path, sess_options = options, providers = ['CUDAExecutionProvider'])
+
+        print('\nOnnx Providers :', providers)
+        print('Onnx Device    :', onnxruntime.get_device(), '\n')
+
+        self.session = onnxruntime.InferenceSession(onnx_path, sess_options = options, providers = providers if providers is not None else ['CPUExecutionProvider'])
 
         # self.session.set_providers(['CUDAExecutionProvider'])
         # self.session = onnxruntime.InferenceSession(onnx_path)
@@ -86,17 +91,25 @@ class GenerateONNXModel:
     nn_model: InitVar[nn.Module]
     onnx_path: str
     input_shape: tuple
-    opset_version: int = 9
+    opset_version: int = 10
     state_dict_path: InitVar[str] = None
+    providers: InitVar[List[str]] = None
+    dynamic_axes: InitVar[Dict[str, Dict[int, str]]] = None
     session: onnxruntime.InferenceSession = field(init = False)
 
-    def __post_init__(self, nn_model: nn.Module, state_dict_path: str = None) -> None:
+    def __post_init__(
+        self,
+        nn_model,
+        state_dict_path = None,
+        providers = None,
+        dynamic_axes = None
+    ) -> None:
         x = torch.ones(*self.input_shape)
         nn_model.eval().cpu()
         
         if state_dict_path:
             load_model(nn_model, state_dict_path, False)
-
+        
         torch.onnx.export(
             nn_model,
             x,
@@ -106,13 +119,16 @@ class GenerateONNXModel:
             do_constant_folding = True,
             input_names = ['input'],
             output_names = ['output'],
-            dynamic_axes = {
+            dynamic_axes = dynamic_axes if dynamic_axes is not None else {
                 'input': {0 : 'batch_size'},
                 'output': {0 : 'batch_size'}
             },
         )
 
-        self.session = onnxruntime.InferenceSession(self.onnx_path, providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'])
+        print('\nOnnx Providers :', providers)
+        print('Onnx Device    :', onnxruntime.get_device(), '\n')
+        
+        self.session = onnxruntime.InferenceSession(self.onnx_path, providers = providers if providers is not None else ['CPUExecutionProvider'])
     
     def __call__(self, inputs: Union[np.ndarray, torch.Tensor]) -> np.ndarray:
         return self.session.run(
