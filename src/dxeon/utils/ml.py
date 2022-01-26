@@ -1,6 +1,12 @@
 from torch.utils.data import DataLoader
-from ...dxeon import DataLoader
+from ...dxeon import DataLoader, random_split
 from ..stats import summarize
+
+def get_train_val_split(dataset, train_frac):
+	train_samples = int(len(dataset) * train_frac)
+	val_samples = len(dataset) - train_samples
+
+	return random_split(dataset, [train_samples, val_samples])
 
 def get_dataloaders(train_dataset, val_dataset = None, test_dataset = None, batch_size = 32, pin_memory = True, num_workers = 0):
 	train_dataloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, pin_memory = pin_memory, num_workers = num_workers)
