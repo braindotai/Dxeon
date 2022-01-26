@@ -1,5 +1,4 @@
-from torch.utils.data import DataLoader
-from ...dxeon import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split
 from ..stats import summarize
 
 def get_train_val_split(dataset, train_frac):
