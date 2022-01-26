@@ -27,9 +27,12 @@ def get_dataloaders(train_dataset, val_dataset = None, test_dataset = None, batc
 
 	return train_dataloader, val_dataloader, test_dataloader
 
-def summarize_batch(dataloader):
+def summarize_batch(dataloader, get_batch = False):
 	for batch in dataloader:
 		break
 	
 	for item in batch:
 		summarize(item)
+	
+	if get_batch:
+		return batch
