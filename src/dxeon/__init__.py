@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from shutil import rmtree, move, copy
 from torch.utils.data import DataLoader, Dataset, random_split, WeightedRandomSampler
 import torch.nn.functional as F
-from torchvision import models, transforms as T
+from torchvision import models, datasets, transforms as T
 import torchvision.transforms.functional as TF
 from torchvision.datasets import DatasetFolder
 
