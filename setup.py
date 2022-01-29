@@ -20,6 +20,7 @@ install_requires = [
     'pyparsing >= 2.4.7',
     'python-dateutil >= 2.8.2',
     'requests >= 2.26.0',
+    'kaggle >= 1.5.12',
     'six >= 1.16.0',
     'torch >= 1.7',
     'torchvision >= 0.8.0',
