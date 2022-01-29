@@ -10,4 +10,4 @@ from .bounding_box import draw_bounding_box
 from .time import time_profile
 from .progressbar import progressbar
 from .ml import *
-from .kaggle import *
+from .download import *
