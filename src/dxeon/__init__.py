@@ -9,7 +9,7 @@ from . import warmups
 
 from glob import glob
 import os
-from os import mkdir as os_mkdir
+from os import mkdir as os_mkdir, listdir
 from os.path import isdir, isfile, join
 from sys import exit
 import matplotlib.pyplot as plt
