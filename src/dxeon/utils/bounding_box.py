@@ -8,24 +8,23 @@ from hashlib import md5 as _md5
 
 _LOC = _path.realpath(_path.join(_os.getcwd(),_path.dirname(__file__)))
 
-#https://clrs.cc/
 _COLOR_NAME_TO_RGB = dict(
-    navy=((0, 38, 63), (255, 255, 255)),
-    blue=((0, 120, 210), (255, 255, 255)),
-    aqua=((115, 221, 252), (255, 255, 255)),
-    teal=((15, 205, 202), (255, 255, 255)),
-    olive=((52, 153, 114), (255, 255, 255)),
-    green=((0, 204, 84), (255, 255, 255)),
-    lime=((1, 255, 127), (255, 255, 255)),
-    yellow=((255, 216, 70), (255, 255, 255)),
-    orange=((255, 125, 57), (255, 255, 255)),
-    red=((255, 47, 65), (255, 255, 255)),
-    maroon=((135, 13, 75), (255, 255, 255)),
-    fuchsia=((246, 0, 184), (255, 255, 255)),
-    purple=((179, 17, 193), (255, 255, 255)),
-    black=((24, 24, 24), (255, 255, 255)),
-    gray=((168, 168, 168), (255, 255, 255)),
-    silver=((220, 220, 220), (255, 255, 255))
+    navy = ((0, 38, 63), (255, 255, 255)),
+    blue = ((0, 120, 210), (255, 255, 255)),
+    aqua = ((115, 221, 252), (255, 255, 255)),
+    teal = ((15, 205, 202), (255, 255, 255)),
+    olive = ((52, 153, 114), (255, 255, 255)),
+    green = ((0, 204, 84), (255, 255, 255)),
+    lime = ((1, 255, 127), (255, 255, 255)),
+    yellow = ((255, 216, 70), (255, 255, 255)),
+    orange = ((255, 125, 57), (255, 255, 255)),
+    red = ((255, 47, 65), (255, 255, 255)),
+    maroon = ((135, 13, 75), (255, 255, 255)),
+    fuchsia = ((246, 0, 184), (255, 255, 255)),
+    purple = ((179, 17, 193), (255, 255, 255)),
+    black = ((24, 24, 24), (255, 255, 255)),
+    gray = ((168, 168, 168), (255, 255, 255)),
+    silver = ((220, 220, 220), (255, 255, 255))
 )
 
 _COLOR_NAMES = list(_COLOR_NAME_TO_RGB)
@@ -53,11 +52,12 @@ def _get_label_image(text, font_color_tuple_bgr, background_color_tuple_bgr, fon
 
     return np.concatenate(image).transpose(1, 2, 0)
 
-def draw_bounding_box(image, top_left, bottom_right = None, width_height = None, label = None, color = None, color_rgb2bgr = True):
+def draw_bounding_box(image, top_left, bottom_right = None, width_height = None, label = None, color = None, color_rgb2bgr = True, transparency = 1.0):
     '''
     https://github.com/nalepae/bounding-box + few changes
     '''
     assert bottom_right or width_height, f'\n\nAtleast one of `bottom_right` or `width_height` is required, got both None.\n'
+    assert 0.0 <= transparency <= 1.0, f'\n\n`transparency` must be in the range of 0.0 to 1.0 inclusive, but got {transparency}.\n'
 
     left = int(top_left[0])
     top = int(top_left[1])
@@ -100,19 +100,32 @@ def draw_bounding_box(image, top_left, bottom_right = None, width_height = None,
     colors = [_rgb_to_bgr(item) if color_rgb2bgr else item for item in _COLOR_NAME_TO_RGB[color]]
     color, color_text = colors
 
+    if transparency != 1.0:
+        crop = image[top: bottom, left: right]
+        filled = _cv2.rectangle(crop.copy(), (0, 0), (crop.shape[1], crop.shape[0]), color, -1)  # A filled rectangle
+        
+        image[top: bottom, left: right] = transparency * crop + (1 - transparency) * filled
+
     _cv2.rectangle(image, (left, top), (right, bottom), color, 2)
 
     border_width = max(2, int(max(right - left, bottom - top) ** 0.34))
     border_length = int(max(right - left, bottom - top) * 0.1)
-    
-    _cv2.line(image, (right - border_length, top), (right, top), color, border_width)
-    _cv2.line(image, (right, top), (right, top + border_length), color, border_width)
+    tick_length = max(int(0.15 * border_length), 2)
 
-    _cv2.line(image, (left, bottom - border_length), (left, bottom), color, border_width)
-    _cv2.line(image, (left, bottom), (left + border_length, bottom), color, border_width)
+    # _cv2.line(image, (right - border_length, top), (right, top), color, border_width)
+    # _cv2.line(image, (right, top), (right, top + border_length), color, border_width)
 
-    _cv2.line(image, (right, bottom - border_length), (right, bottom), color, border_width)
-    _cv2.line(image, (right, bottom), (right - border_length, bottom), color, border_width)
+    # _cv2.line(image, (left, bottom - border_length), (left, bottom), color, border_width)
+    # _cv2.line(image, (left, bottom), (left + border_length, bottom), color, border_width)
+
+    # _cv2.line(image, (right, bottom - border_length), (right, bottom), color, border_width)
+    # _cv2.line(image, (right, bottom), (right - border_length, bottom), color, border_width)
+
+    # _cv2.line(image, (right - tick_length, int(top + (bottom - top) // 2)), (right + tick_length, int(top + (bottom - top) // 2)), color, tick_length)
+    # _cv2.line(image, (left - tick_length, int(top + (bottom - top) // 2)), (left + tick_length, int(top + (bottom - top) // 2)), color, tick_length)
+
+    # _cv2.line(image, (int(left + (right - left) // 2), top - tick_length), (int(left + (right - left) // 2), top + tick_length), color, tick_length)
+    # _cv2.line(image, (int(left + (right - left) // 2), bottom - tick_length), (int(left + (right - left) // 2), bottom + tick_length), color, tick_length)
 
     if label:
         _, image_width, _ = image.shape
@@ -146,6 +159,6 @@ def draw_bounding_box(image, top_left, bottom_right = None, width_height = None,
         _cv2.rectangle(image, rec_left_top, rec_right_bottom, color, -1)
 
         image[label_top:label_bottom, label_left:label_right, :] = label_image
-    else:
-        _cv2.line(image, (left, top), (left + border_length, top), color, border_width)
-        _cv2.line(image, (left, top), (left, top + border_length), color, border_width)
+    # else:
+    #     _cv2.line(image, (left, top), (left + border_length, top), color, border_width)
+    #     _cv2.line(image, (left, top), (left, top + border_length), color, border_width)

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 def compute_integrated_gradients(
     model: nn.Module,
     input_tensor: torch.Tensor,
-    steps: int = 100,
+    steps: int = 50,
     has_classes: bool = True,
     class_idx: int = None,
     device: str = 'cuda',
@@ -34,7 +34,7 @@ def compute_integrated_gradients(
 
     if has_classes:
         class_idx = class_idx if class_idx is not None else outputs[-1].argmax(0)
-        integrated_gradients = torch.autograd.grad(outputs.softmax(1)[:, class_idx].sum(), interpolated_images)[0].mean(dim = 0)
+        integrated_gradients = torch.autograd.grad(outputs[:, class_idx].sum(), interpolated_images)[0].mean(dim = 0)
     else:
         integrated_gradients = torch.autograd.grad(outputs.sum(), interpolated_images)[0].mean(dim = 0)
 

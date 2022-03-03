@@ -8,7 +8,8 @@ def get_kaggle_dataset_from_url(dataset_url: str):
         os.system('cp kaggle.json ~/.kaggle/')
         os.system('chmod 600 ~/.kaggle/kaggle.json')
         
-        os.system(f'kaggle datasets download {"/".join(dataset_url.split("/")[-2])}')
+    os.system(f'kaggle datasets download {"/".join(dataset_url.split("/")[-2:])}')
+
 
 def get_file_from_url(file_url: str):
     pass

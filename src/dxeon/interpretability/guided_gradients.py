@@ -1,9 +1,28 @@
 import os
+
+from cv2 import grabCut
+from numpy import gradient
 from .. import utils
 import torch
 from torch import nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+from torchvision import transforms
+
+def prep_grads(grads):
+    invTrans = transforms.Compose([
+        transforms.Normalize(mean = [0., 0., 0.], std = [1 / 0.229, 1 / 0.224, 1 / 0.225]),
+        transforms.Normalize(mean = [-0.485, -0.456, -0.406], std = [1., 1., 1.])
+    ])
+    out = invTrans(grads.unsqueeze(0))[0]
+    out = out.detach()
+    return out
+
+def norm_flat_image(grads):
+    grads_norm = prep_grads(grads)
+    grads_norm = grads_norm[0, :, :, ] + grads_norm[1, :, :, ] + grads_norm[2, :, :, ]
+    grads_norm = (grads_norm - grads_norm.min()) / (grads_norm.max()- grads_norm.min())
+    return grads_norm
 
 def compute_guided_gradients(
     model: nn.Module,
@@ -20,7 +39,7 @@ def compute_guided_gradients(
     def backward_hook(module, input_grads, output_grads):
         if isinstance(module, nn.ReLU):
             return F.relu(input_grads[0]),
-    
+
     handels = []
     for module in model.modules():
         handels.append(module.register_backward_hook(backward_hook))
@@ -34,12 +53,11 @@ def compute_guided_gradients(
 
     if has_classes:
         class_idx = class_idx if class_idx else outputs[-1].argmax(0)
-        guided_gradients = torch.autograd.grad(outputs.softmax(1)[:, class_idx].sum(), input_tensor)[0]
+        print(class_idx)
+        guided_gradients = torch.autograd.grad(outputs[0, class_idx].sum(), input_tensor)[0]
     else:
         guided_gradients = torch.autograd.grad(outputs.sum(), input_tensor)[0]
     
-    guided_gradients = (guided_gradients - guided_gradients.min()) / (guided_gradients.max() - guided_gradients.min())
-
     input_tensor.requires_grad = False
 
     for handle in handels:
@@ -56,7 +74,7 @@ def compute_guided_gradients(
         plt.axis('off')
 
         plt.subplot(2, 2, 2)
-        plt.imshow(utils.image.get_plt_image(guided_gradients), cmap = 'viridis')
+        plt.imshow(utils.image.get_plt_image(guided_gradients), vmin = 0.3, vmax = 0.7, cmap = 'gray')
         plt.title('Guided Gradients')
         plt.axis('off')
         
@@ -71,7 +89,7 @@ def compute_guided_gradients(
         plt.imshow(utils.image.get_plt_image(maps))
         plt.title('Guided Gradients Mapped inputs')
         plt.axis('off')
-        
+
         if save_path:
             plt.savefig(save_path)
 

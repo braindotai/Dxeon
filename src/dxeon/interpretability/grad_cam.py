@@ -35,16 +35,17 @@ def compute_grad_cam(
 
     if has_classes:
         class_idx = class_idx if class_idx is not None else outputs[0].argmax(0)
+        print(class_idx)
         outputs[:, class_idx].backward()
     else:
         outputs[0].sum().backward()
 
     with torch.no_grad():
         gradients = model._hook_gradients
-        pooled_gradients = torch.mean(gradients, dim = [0, 2, 3])
+        pooled_gradients = torch.mean(gradients, dim = [2, 3], keepdim = True)
         
         activations = model._hook_activations.detach()
-        activations *= pooled_gradients.unsqueeze(-1).unsqueeze(-1).unsqueeze(0)
+        activations *= pooled_gradients[0]
         
         activation_maps = torch.sum(activations, dim = 1).squeeze().cpu()
         activation_maps = np.maximum(activation_maps, 0)

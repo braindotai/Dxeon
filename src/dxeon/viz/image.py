@@ -51,33 +51,40 @@ def _get_cmap_alpha(cmap, alpha, cols):
     return cmap, alpha
 
 def image_stack(
-    pairs_lists: List[Union[Image.Image, np.ndarray, torch.Tensor]],
-    titles: str = None,
-    size: Tuple[int] = (8, 8),
+    stack_lists: List[Union[Image.Image, np.ndarray, torch.Tensor]],
+    titles: List[str] = None,
+    shape: Tuple[int] = (8, 8),
     bgr2rgb: bool = True,
     normalize: bool = True,
-    cmap = None,
-    alpha = 1.0,
+    cmap: str = None,
+    alpha: float = 1.0,
+    save: bool = False,
 ) -> None:
-    assert len(pairs_lists[0]) == len(pairs_lists[1]), f'\n\nPairs mismatch found! Make sure no. of image in both lists are same.\n'
-
     if titles:
-        assert len(pairs_lists) == len(titles), f'\n\nTitles must be provided for each image columns, found total "{len(titles)}" titles, while total image columns are "{len(pairs_lists)}".\n'
+        assert len(stack_lists) == len(titles), f'\n\nTitles must be provided for each image columns, found total "{len(titles)}" titles, while total image columns are "{len(stack_lists)}".\n'
     
-    cols = len(pairs_lists)
-    
-    cmap, alpha = _get_cmap_alpha(cmap, alpha, cols)
+    fig = plt.figure(figsize = shape)
+    shape = (len(stack_lists[0]), len(stack_lists))
+    grid = ImageGrid(fig, 111, nrows_ncols = shape, axes_pad = 0.02)
+    grid_list = []
 
-    for images in zip(*pairs_lists):
-        plt.figure(figsize = size)
-        for idx, image in enumerate(images):
-            plt.subplot(1, cols, idx + 1)
-            image = utils.image.get_plt_image(image, bgr2rgb, normalize)
-            plt.imshow(image, cmap = cmap[idx], alpha = alpha[idx])
-            plt.axis('off')
-            if titles:
-                plt.title(titles[idx])
-        plt.show()
+    for col in zip(*stack_lists):
+        for i in range(len(col)):
+            grid_list.append(col[i])
+
+    for ax, image in zip(grid, grid_list):
+        ax.imshow(
+            utils.image.get_plt_image(image, bgr2rgb, normalize),
+            cmap = cmap,
+            alpha = alpha
+        )
+        ax.axis('off')
+    
+    if titles is not None:
+        plt.title(' | '.join(titles))
+    if save:
+        plt.savefig(save)
+    plt.show()
 
 def image_grid(
     grid_list: List[Union[Image.Image, np.ndarray, torch.Tensor]],
