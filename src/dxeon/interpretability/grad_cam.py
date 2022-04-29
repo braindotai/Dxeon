@@ -83,8 +83,7 @@ def compute_grad_cam(
         plt.axis('off')
 
         plt.subplot(2, 2, 4)
-        heatmap = utils.image.normalize(utils.image.torch_to_numpy(input_tensor)) * np.expand_dims(activation_maps, -1)
-        plt.imshow(utils.image.get_plt_image(heatmap))
+        plt.imshow(utils.image.get_plt_image(utils.image.normalize(utils.image.torch_to_numpy(input_tensor)) * np.expand_dims(activation_maps, -1)))
         plt.title('GradCAM Mapped Inputs')
         plt.axis('off')
 
