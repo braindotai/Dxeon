@@ -7,7 +7,7 @@ from ..utils.model import get_device
 def summarize(item: Union[nn.Module, torch.Tensor], input_size: Union[List, Tuple] = None, device: str = 'cpu', name = '', **kwargs):
     if isinstance(item, nn.Module):
         _original_device = get_device(item)
-        summary(item, input_size = input_size, device = device, verbose = 2, **kwargs)
+        summary(item, input_size = input_size, device = device, verbose = 1, **kwargs)
 
         if device != _original_device:
             item.to(_original_device)
