@@ -4,16 +4,14 @@ from torch import nn
 from torchinfo import summary
 from ..utils.model import get_device
 
-def summarize(item: Union[nn.Module, torch.Tensor], input_size: Union[List, Tuple] = None, device: str = 'cpu', name = ''):
+def summarize(item: Union[nn.Module, torch.Tensor], input_size: Union[List, Tuple] = None, device: str = 'cpu', name = '', **kwargs):
     if isinstance(item, nn.Module):
         _original_device = get_device(item)
-        summary_ = summary(item, input_size = input_size, device = device)
+        summary(item, input_size = input_size, device = device, verbose = 2, **kwargs)
 
         if device != _original_device:
             item.to(_original_device)
         
-        return summary_
-    
     elif isinstance(item, torch.Tensor):
         print(f'{name} Shape\t:', item.shape)
         print(f'{name} Dtype\t:', item.dtype)

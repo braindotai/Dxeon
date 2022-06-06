@@ -56,20 +56,20 @@ def setup_logging(filename = None, level = 'DEBUG'):
         handlers = handlers,
     )
 
-def debug(message):
-    logging.debug(message)
+def debug(*messages):
+    logging.debug(' '.join([str(item) for item in messages]))
 
-def info(message):
-    logging.info(message)
+def info(*messages):
+    logging.info(' '.join([str(item) for item in messages]))
 
-def warning(message):
-    logging.warning(message)
+def warning(*messages):
+    logging.warning(' '.join([str(item) for item in messages]))
 
-def error(message):
-    logging.error(message)
+def error(*messages):
+    logging.error(' '.join([str(item) for item in messages]))
 
-def critical(message):
-    logging.critical(message)
+def critical(*messages):
+    logging.critical(' '.join([str(item) for item in messages]))
 
-def exception(message):
-    logging.error(message, exc_info = True)
+def exception(*messages):
+    logging.error(' '.join([str(item) for item in messages]), exc_info = True)
