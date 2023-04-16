@@ -1,0 +1,25 @@
+Metadata-Version: 2.1
+Name: dxeon
+Version: 0.1.0
+Summary: Fast task utils for deep learning and machine learning pipelines.
+Home-page: https://github.com/braindotai/Dxeon
+Author: Rishik C. Mourya
+Author-email: braindotai@gmail.com
+License: MIT
+Platform: unix
+Platform: linux
+Platform: osx
+Platform: cygwin
+Platform: win32
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Requires-Python: >=3.6
+Provides-Extra: testing
+
+UNKNOWN
+

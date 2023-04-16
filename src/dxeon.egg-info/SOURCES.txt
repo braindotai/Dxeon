@@ -1,0 +1,10 @@
+README.md
+setup.cfg
+setup.py
+src/dxeon/__init__.py
+src/dxeon.egg-info/PKG-INFO
+src/dxeon.egg-info/SOURCES.txt
+src/dxeon.egg-info/dependency_links.txt
+src/dxeon.egg-info/not-zip-safe
+src/dxeon.egg-info/requires.txt
+src/dxeon.egg-info/top_level.txt

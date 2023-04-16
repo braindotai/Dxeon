@@ -10,7 +10,7 @@ from . import warmups
 from glob import glob
 import os
 from os import mkdir as os_mkdir, remove, listdir
-from os.path import isdir, isfile, join, basename
+from os.path import isdir, isfile, join, basename, sep
 from sys import exit
 import matplotlib.pyplot as plt
 from shutil import rmtree as rmdir, move, copy
