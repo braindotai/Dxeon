@@ -56,12 +56,12 @@ def resize_cv2(image: Image, size: Union[int, Tuple[int, int], List[int]], inter
     if isinstance(size, int):
         if w > h:
             aspect_ratio = h / w
-            dim = (size, int(aspect_ratio * size))
+            new_size = (size, int(aspect_ratio * size))
         else:
             aspect_ratio = w / h
-            dim = (int(aspect_ratio * size), size)
+            new_size = (int(aspect_ratio * size), size)
         
-        image = cv2.resize(image, dim, interpolation = interpolation_method)
+        image = cv2.resize(image, new_size, interpolation = interpolation_method)
     else:
         image = cv2.resize(image, tuple(size), interpolation = interpolation_method)
     return image

@@ -11,6 +11,7 @@ from typing import Tuple, List, Union
 
 from ..utils import resize_cv2, resize_pil, pil_to_torch
 
+
 def read_pil(image_path: str, size: Union[int, Tuple[int, int], List[int]] = None, interpolation: str = 'bilinear') -> Image.Image:
     assert os.path.isfile(image_path), f'\n\nImage with path "{image_path}" does not exist.\n'
     image = Image.open(image_path).convert('RGB')
@@ -51,7 +52,7 @@ def from_url_to_torch(url: str, size: Union[int, Tuple[int, int], List[int]] = N
 def write(image: Union[Image.Image, np.ndarray, torch.Tensor], image_path: str) -> None:
     if isinstance(image, Image.Image):
         image.save(image_path)
-    elif isinstance(image, np.ndarray):
+    elif isinstance(image, np.ndarray) or type(image).__module__ == np.__name__:
         image = image.astype('float32')
         image = (image - image.min())/image.ptp()
         image *= 255.0
@@ -62,4 +63,4 @@ def write(image: Union[Image.Image, np.ndarray, torch.Tensor], image_path: str) 
         image = (image - image.min())/image.ptp()
         image *= 255.0
         image = image.astype('uint8')
-        cv2.imwrite(image_path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+        cv2.imwrite(image_path, image)

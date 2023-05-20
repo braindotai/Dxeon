@@ -120,7 +120,7 @@ def labeled_images(
     image_batch: torch.Tensor,
     label_batch: torch.Tensor,
     shape: Tuple[int],
-    label_dict: Dict[int, str] = None,
+    label_names: List[str] = None,
     size: int = 10,
     title: str = None,
     bgr2rgb: bool = True,
@@ -128,6 +128,7 @@ def labeled_images(
     save: bool = None,
     cmap = None,
     alpha = 1.0,
+    show = True
 ) -> None:
 
     fig = plt.figure(figsize = (size, size))
@@ -142,10 +143,11 @@ def labeled_images(
             alpha = alpha[idx]
         )
         ax.axis('off')
-        ax.set_title(f'{label}' if label_dict is None else f'{label_dict[label]}')
+        ax.set_title(f'{label}' if label_names is None else f'{label_names[label]}')
 
     if title is not None:
         print(title)
     if save:
         plt.savefig(save)
-    plt.show()
+    if show:
+        plt.show()

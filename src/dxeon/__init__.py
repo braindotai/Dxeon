@@ -21,6 +21,10 @@ import torchvision.transforms.functional as TF
 from torchvision.datasets import DatasetFolder
 import zipfile
 import logging
+from rich.console import Console
+from rich.text import Text
+from rich.logging import RichHandler
+import tqdm
 
 # plt.style.use('ggplot')
 plt.style.use('seaborn')
@@ -42,12 +46,11 @@ def extract_zip(path, output_dir = './'):
     with zipfile.ZipFile(path, 'r') as zip_ref:
         zip_ref.extractall(output_dir)
 
-
-def setup_logging(filename = None, level = 'DEBUG'):
-    handlers = [logging.StreamHandler()]
+def setup_logging(filename = None, level = 'DEBUG', mode = 'w'):
+    handlers = [RichHandler()]
     
     if filename:
-        handlers.append(logging.FileHandler(filename))
+        handlers.append(logging.FileHandler(filename, mode = mode))
 
     logging.basicConfig(
         level = getattr(logging, level.upper()), 
@@ -73,3 +76,12 @@ def critical(*messages):
 
 def exception(*messages):
     logging.error(' '.join([str(item) for item in messages]), exc_info = True)
+
+def log_rich_table(rich_table):
+  """Generate an ascii formatted presentation of a Rich table
+  Eliminates any column styling
+  """
+  console = Console(width = 150)
+  with console.capture() as capture:
+      console.print(rich_table)
+  return Text.from_ansi(capture.get())
