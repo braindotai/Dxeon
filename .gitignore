@@ -1,4 +1,5 @@
 venv
+.history
 .vars
 *.pyc
 __pycache__
