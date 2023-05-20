@@ -29,22 +29,27 @@ import tqdm
 # plt.style.use('ggplot')
 plt.style.use('seaborn')
 
+
 def mkdir_if_not_exists(path):
     if not isdir(path):
         os_mkdir(path)
+
 
 def mkdir(path):
     if isdir(path):
         rmdir(path)
     os_mkdir(path)
 
+
 def rename(path, new_path):
     if isdir(path):
         os.rename(path, new_path)
 
+
 def extract_zip(path, output_dir = './'):
     with zipfile.ZipFile(path, 'r') as zip_ref:
         zip_ref.extractall(output_dir)
+
 
 def setup_logging(filename = None, level = 'DEBUG', mode = 'w'):
     handlers = [RichHandler()]
@@ -59,23 +64,30 @@ def setup_logging(filename = None, level = 'DEBUG', mode = 'w'):
         handlers = handlers,
     )
 
+
 def debug(*messages):
     logging.debug(' '.join([str(item) for item in messages]))
+
 
 def info(*messages):
     logging.info(' '.join([str(item) for item in messages]))
 
+
 def warning(*messages):
     logging.warning(' '.join([str(item) for item in messages]))
+
 
 def error(*messages):
     logging.error(' '.join([str(item) for item in messages]))
 
+
 def critical(*messages):
     logging.critical(' '.join([str(item) for item in messages]))
 
+
 def exception(*messages):
     logging.error(' '.join([str(item) for item in messages]), exc_info = True)
+
 
 def log_rich_table(rich_table):
   """Generate an ascii formatted presentation of a Rich table
